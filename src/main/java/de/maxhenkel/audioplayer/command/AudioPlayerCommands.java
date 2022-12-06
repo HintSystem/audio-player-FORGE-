@@ -8,9 +8,7 @@ import com.mojang.brigadier.context.CommandContext;
 import de.maxhenkel.audioplayer.AudioManager;
 import de.maxhenkel.audioplayer.AudioPlayer;
 import de.maxhenkel.audioplayer.Filebin;
-import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.ChatFormatting;
-import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.UuidArgument;
@@ -39,7 +37,7 @@ public class AudioPlayerCommands {
 
     public static final Pattern SOUND_FILE_PATTERN = Pattern.compile("^[a-z0-9_ -]+.((wav)|(mp3))$", Pattern.CASE_INSENSITIVE);
 
-    public static void register(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext ctx, Commands.CommandSelection environment) {
+    public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         LiteralArgumentBuilder<CommandSourceStack> literalBuilder = Commands.literal("audioplayer")
                 .requires((commandSource) -> commandSource.hasPermission(Math.min(AudioPlayer.SERVER_CONFIG.uploadPermissionLevel.get(), AudioPlayer.SERVER_CONFIG.applyToItemPermissionLevel.get())));
 
