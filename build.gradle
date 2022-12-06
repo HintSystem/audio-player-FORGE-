@@ -1,179 +1,143 @@
 buildscript {
     repositories {
-        maven { url = 'https://maven.maxhenkel.de/repository/public' }
-        mavenLocal()
+        maven { url = 'https://files.minecraftforge.net/maven' }
+        maven { url = 'https://repo.spongepowered.org/maven' }
+        mavenCentral()
     }
     dependencies {
-        classpath group: 'de.maxhenkel.forge-update', name: 'forge-update', version: '1.0.4'
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
+        // MixinGradle:
+        classpath 'org.spongepowered:mixingradle:0.7.+'
     }
 }
 
 plugins {
-    id "fabric-loom" version "1.0-SNAPSHOT"
-    id "com.matthewprenger.cursegradle" version "1.4.0"
     id "com.github.johnrengelman.shadow" version "7.1.0"
-    id "com.modrinth.minotaur" version "2.+"
-    id 'io.github.juuxel.loom-quiltflower' version '1.6.0'
 }
 
-apply plugin: 'forge-update'
+apply plugin: 'net.minecraftforge.gradle'
+apply plugin: 'eclipse'
+apply plugin: 'maven-publish'
+// MixinGradle:
+apply plugin: 'org.spongepowered.mixin'
 
-sourceCompatibility = JavaVersion.VERSION_17
-targetCompatibility = JavaVersion.VERSION_17
-
-archivesBaseName = archives_base_name
 version = mod_version
 group = maven_group
+archivesBaseName = archives_base_name
 
-loom {
-    accessWidenerPath = file("src/main/resources/audioplayer.accesswidener")
-}
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
-repositories {
-    mavenLocal()
-    mavenCentral()
-    maven { url = "https://maven.fabricmc.net/" }
-    maven { url = 'https://maven.maxhenkel.de/repository/public' }
-    maven {
-        name = "Modrinth"
-        url = "https://api.modrinth.com/maven"
-        content {
-            includeGroup "maven.modrinth"
+println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty 'java.vm.version'} (${System.getProperty 'java.vendor'}), Arch: ${System.getProperty 'os.arch'}"
+minecraft {
+    mappings channel: 'official', version: '1.19.2'
+
+    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg') // Currently, this location cannot be changed from the default.
+    
+    runs {
+        client {
+            workingDirectory project.file('run')
+            
+            property 'forge.logging.markers', 'REGISTRIES'
+
+            property 'forge.logging.console.level', 'debug'
+            
+            property 'forge.enabledGameTestNamespaces', 'audioplayer'
+
+            mods {
+                audioplayer {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        server {
+            workingDirectory project.file('run')
+
+            property 'forge.logging.markers', 'REGISTRIES'
+
+            property 'forge.logging.console.level', 'debug'
+
+            property 'forge.enabledGameTestNamespaces', 'audioplayer'
+
+            mods {
+                audioplayer {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        gameTestServer {
+            workingDirectory project.file('run')
+
+            property 'forge.logging.markers', 'REGISTRIES'
+
+            property 'forge.logging.console.level', 'debug'
+
+            property 'forge.enabledGameTestNamespaces', 'audioplayer'
+
+            mods {
+                audioplayer {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        data {
+            workingDirectory project.file('run')
+
+            property 'forge.logging.markers', 'REGISTRIES'
+
+            property 'forge.logging.console.level', 'debug'
+
+            args '--mod', 'audioplayer', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
+
+            mods {
+                audioplayer {
+                    source sourceSets.main
+                }
+            }
         }
     }
 }
 
-runClient.doFirst {
-    args = ['--username', "henkelmax${new Random().nextInt(1000)}"]
+sourceSets.main.resources { srcDir 'src/generated/resources' }
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven { url = 'https://maven.maxhenkel.de/repository/public' }
 }
 
 dependencies {
-    minecraft "com.mojang:minecraft:${minecraft_version}"
-    mappings loom.officialMojangMappings()
-    modImplementation "net.fabricmc:fabric-loader:${loader_version}"
+    minecraft 'net.minecraftforge:forge:1.19.2-43.1.7'
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
-    Set<String> apiModules = [
-            "fabric-api-base",
-            "fabric-command-api-v2"
-    ]
-
-    apiModules.forEach {
-        include(modImplementation(fabricApi.module(it, fabric_version)))
-    }
-
-    implementation 'com.google.code.findbugs:jsr305:3.0.2'
-
-    implementation "de.maxhenkel.configbuilder:configbuilder:${configbuilder_version}"
-    shadow "de.maxhenkel.configbuilder:configbuilder:${configbuilder_version}"
-
-    implementation "de.maxhenkel.voicechat:voicechat-api:${voicechat_api_version}"
-
-    modRuntimeOnly "maven.modrinth:simple-voice-chat:fabric-${voicechat_mod_version}"
-    modRuntimeOnly fileTree(dir: 'libs', include: '*.jar')
-    modRuntimeOnly "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
+    implementation fg.deobf("de.maxhenkel.voicechat:voicechat-api:${voicechat_api_version}")
 
     implementation("com.googlecode.soundlibs:mp3spi:${mp3spi_version}") {
         exclude group: 'junit', module: 'junit'
     }
+
     shadow("com.googlecode.soundlibs:mp3spi:${mp3spi_version}") {
         exclude group: 'junit', module: 'junit'
     }
 }
 
-processResources {
-    filesMatching("fabric.mod.json") {
-        expand "version": version,
-                "minecraft_dependency": minecraft_dependency,
-                "minecraft_version": minecraft_version,
-                "loader_version": loader_version,
-                "fabric_version": fabric_version,
-                "voicechat_api_version": voicechat_api_version
-    }
-}
-
-tasks.withType(JavaCompile).configureEach {
-    it.options.encoding = "UTF-8"
-    it.options.release = 17
-}
-
-java {
-    withSourcesJar()
-}
-
 jar {
-    from("LICENSE") {
-        rename { "${it}_${archivesBaseName}" }
+    manifest {
+        attributes([
+                "Specification-Title"     : "audioplayer",
+                "Specification-Vendor"    : "audioplayersareus",
+                "Specification-Version"   : "1", // We are version 1 of ourselves
+                "Implementation-Title"    : project.name,
+                "Implementation-Version"  : project.jar.archiveVersion,
+                "Implementation-Vendor"   : "audioplayersareus",
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+                "TweakClass": "org.spongepowered.asm.launch.MixinTweaker",
+                "TweakOrder": 0,
+                "MixinConfigs": "audioplayer.mixins.json"
+        ])
     }
-}
-
-curseforge {
-    apiKey = file('curseforge_api_key.txt').exists() ? file('curseforge_api_key.txt').text : ''
-    project {
-        id = curse_id
-        changelogType = 'markdown'
-        changelog = file('changelog.md')
-        releaseType = release_type
-        addGameVersion curseforge_minecraft_version
-        addGameVersion "Fabric"
-        addGameVersion "Java 17"
-        mainArtifact(file("${buildDir}/libs/${archivesBaseName}-${version}.jar")) {
-            displayName = "[FABRIC][${minecraft_version}] ${mod_name} ${mod_version}"
-            relations {
-                requiredDependency 'fabric-api'
-                requiredDependency 'simple-voice-chat'
-            }
-        }
-        afterEvaluate {
-            uploadTask.dependsOn(remapJar)
-        }
-    }
-    options {
-        forgeGradleIntegration = false
-    }
-}
-
-tasks.modrinth.configure({
-    group = 'upload'
-})
-tasks.modrinthSyncBody.configure({
-    group = 'upload'
-})
-
-modrinth {
-    token = file("${rootDir}/modrinth_token.txt").exists() ? file("${rootDir}/modrinth_token.txt").text : ''
-    projectId = modrinth_id
-    versionNumber = "fabric-${mod_version}"
-    versionName = "[FABRIC][${minecraft_version}] ${mod_name} ${mod_version}"
-    uploadFile = remapJar
-    versionType = release_type.toUpperCase()
-    changelog = file("changelog.md").text
-    gameVersions = [minecraft_version]
-    loaders = ['fabric']
-    syncBodyFrom = file("readme.md").text
-    dependencies {
-        required.project "P7dR8mSH" // Fabric API
-        required.project "9eGKb6K1" // Simple Voice Chat
-    }
-}
-tasks.modrinth.dependsOn(build)
-
-forgeUpdate {
-    def messages = []
-    file('changelog.md').eachLine { String line ->
-        if (line.trim().startsWith('-')) {
-            messages.add(line.replaceFirst('-', '').trim())
-        }
-    }
-
-    serverURL = 'https://update.maxhenkel.de/'
-    apiKey = file('forge_update_api_key.txt').exists() ? file('forge_update_api_key.txt').text : ''
-    modID = mod_id
-    gameVersion = minecraft_version
-    modLoader = "fabric"
-    modVersion = mod_version
-    updateMessages = messages
-    releaseType = release_type
-    tags = recommended == 'true' ? ['recommended'] : []
 }
 
 shadowJar {
@@ -184,10 +148,21 @@ shadowJar {
     relocate 'org.tritonus', "de.maxhenkel.${mod_id}.tritonus"
 }
 
-prepareRemapJar {
-    dependsOn shadowJar
+jar.finalizedBy('reobfJar')
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifact jar
+        }
+    }
+    repositories {
+        maven {
+            url "file://${project.projectDir}/mcmodsrepo"
+        }
+    }
 }
 
-remapJar {
-    input = shadowJar.archiveFile.get()
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
 }
