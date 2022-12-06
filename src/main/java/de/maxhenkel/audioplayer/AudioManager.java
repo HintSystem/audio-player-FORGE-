@@ -2,7 +2,6 @@ package de.maxhenkel.audioplayer;
 
 import de.maxhenkel.audioplayer.interfaces.IJukebox;
 import de.maxhenkel.voicechat.api.VoicechatServerApi;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
@@ -12,6 +11,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.fml.loading.FMLPaths;
 import org.apache.commons.io.IOUtils;
 
 import javax.annotation.Nullable;
@@ -49,7 +49,7 @@ public class AudioManager {
     }
 
     public static Path getUploadFolder() {
-        return FabricLoader.getInstance().getGameDir().resolve("audioplayer_uploads");
+        return FMLPaths.GAMEDIR.get().resolve("audioplayer_uploads");
     }
 
     public static void saveSound(MinecraftServer server, UUID id, String url) throws UnsupportedAudioFileException, IOException {
