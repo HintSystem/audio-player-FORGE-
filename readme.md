@@ -2,7 +2,7 @@
 
 ![](http://cf.way2muchnoise.eu/full_549719_downloads.svg) ![](http://cf.way2muchnoise.eu/versions/549719.svg)
 
-# AudioPlayer
+# AudioPlayer [Forge]
 
 ## Links
 - [CurseForge](https://www.curseforge.com/minecraft/mc-mods/audioplayer)
@@ -13,7 +13,7 @@
 
 <!-- modrinth_exclude.end -->
 
-This server side Fabric mod enables uploading custom audio for music discs and goat horns.
+This server side Forge mod enables uploading custom audio for music discs and goat horns.
 
 This mod requires [Simple Voice Chat](https://www.curseforge.com/minecraft/mc-mods/simple-voice-chat) on the client and server.
 
