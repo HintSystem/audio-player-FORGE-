@@ -13,6 +13,7 @@ import java.awt.image.BufferedImage;
 import java.net.URL;
 import java.util.Enumeration;
 
+@ForgeVoicechatPlugin
 public class Plugin implements VoicechatPlugin {
 
     public static String MUSIC_DISC_CATEGORY = "music_discs";
